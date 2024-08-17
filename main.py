@@ -1,9 +1,3 @@
-import time
-from datetime import datetime
-
-import pyttsx3
-from moviepy.editor import *
-
 from edit_video import generate_audio, process_audio, generate_video
 from scrape_wiki import open_wiki, get_wiki
 
