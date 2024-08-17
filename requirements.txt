@@ -1,0 +1,4 @@
+moviepy
+pedalboard
+pyttsx3
+selenium
