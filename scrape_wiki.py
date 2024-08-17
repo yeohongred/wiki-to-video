@@ -20,7 +20,7 @@ def open_wiki(day=None, month=None, year=None):
     time.sleep(1)
 
 
-def get_wiki(driver=driver):
+def get_wiki():
     article = driver.find_element(By.XPATH, "//*[@id='mw-content-text']/div[1]").text
     # Removes extra text
     article = article.split(" (Full article...)")[0]
@@ -31,11 +31,13 @@ def get_wiki(driver=driver):
 
     title = driver.find_element(By.XPATH, "//*[@id='firstHeading']").text    
     link = driver.current_url
+    driver.quit()
 
     print(f"{title}\n{article}\n{link}")
 
     return title, article, link
 
 
-def close_wiki():
-    driver.quit()
+if __name__ == "__main__":
+    open_wiki()
+    get_wiki()
