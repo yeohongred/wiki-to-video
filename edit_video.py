@@ -24,7 +24,7 @@ def generate_audio(voice=0, text="The quick brown fox jumps over the lazy dog.",
 
 # might need to add normalisation
 def process_audio(input_file="generate_audio_output.wav", output_file="process_audio_output.wav"):
-    board = Pedalboard([Reverb(room_size=0.05, wet_level=0.2, dry_level=0.6)])
+    board = Pedalboard([Reverb(room_size=0.4, damping=1, wet_level=0.2, dry_level=0.3)])
 
     with AudioFile(f"media/{input_file}") as input_audio:
         with AudioFile(f"media/{output_file}", 'w', input_audio.samplerate, input_audio.num_channels) as output_audio:
@@ -54,4 +54,6 @@ def generate_video(gameplay_video_file="minecraft.mp4", background_audio_file="t
 
 
 if __name__ == "__main__":
+    generate_audio()
+    process_audio()
     generate_video()
