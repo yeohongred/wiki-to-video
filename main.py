@@ -5,7 +5,7 @@ from scrape_wiki import open_wiki, get_wiki
 def main():
     open_wiki("10", "August", "2023")
     title, article, link = get_wiki()
-    generate_audio()
+    generate_audio(text=article)
     process_audio()
     generate_video()
 

@@ -44,6 +44,7 @@ def generate_video(gameplay_video_file="minecraft.mp4", background_audio_file="t
     gameplay_video = gameplay_video.subclip(start_time, start_time + video_length)
 
     background_audio = background_audio.subclip(0, video_length)
+    background_audio = background_audio.volumex(0.05)
 
     final_video = gameplay_video
     final_audio = CompositeAudioClip([background_audio, voice_audio])
