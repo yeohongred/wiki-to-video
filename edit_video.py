@@ -11,6 +11,7 @@ from moviepy.editor import *
 
 WIDTH = 1080
 HEIGHT = 1920
+FONT = ImageFont.truetype(font="assets/montserrat_semibold.ttf", size=100)
 
 
 # 0 is male voice, 1 is female voice (for my computer)
@@ -41,11 +42,10 @@ def process_audio(input_file="generate_audio_output.wav", output_file="process_a
 def generate_text():
     text = "The quick brown fox jumps over the lazy dog."
     text_image = Image.new('RGBA', (WIDTH, HEIGHT), color=(0, 0, 0, 0))
-
     text_image_draw = ImageDraw.Draw(text_image)
-    text_image_draw.font = ImageFont.truetype("assets/montserrat_semibold.ttf")
 
-    text_image_draw.text(xy=(10, 10), text=text, fill=(255, 255, 0))
+    _, _, text_width, text_height = text_image_draw.textbbox((0, 0), text, font=FONT)
+    text_image_draw.text(((WIDTH-text_width)/2, (HEIGHT-text_height)/2), text, font=FONT, fill=(255, 255, 255))
 
     text_image.save('media/generate_text_output.png')
 
