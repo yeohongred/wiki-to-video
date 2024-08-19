@@ -1,6 +1,8 @@
 # Video and audio
 *.mp4
 *.wav
+*.png
+*.ttf
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
