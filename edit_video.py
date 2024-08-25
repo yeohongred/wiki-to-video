@@ -53,7 +53,7 @@ def process_audio(input_directory="generate_audio_output", output_directory="pro
 
 
 def generate_text(text_list=["The quick brown fox jumps over the lazy dog", "Lorem Ipsum is simply dummy text of the printing and typesetting industry."], output_directory="generate_text_output"):
-    # Ensure directory exists and also clear existing .png files
+    # Ensure directory exists and clear existing .png files
     os.makedirs(f"media/{output_directory}", exist_ok=True)
     for file in os.listdir(f"media/{output_directory}"):
         if file.endswith(".png"):
@@ -65,12 +65,22 @@ def generate_text(text_list=["The quick brown fox jumps over the lazy dog", "Lor
         text_image = Image.new("RGBA", (WIDTH, HEIGHT), color=(0, 0, 0, 0))
         text_image_draw = ImageDraw.Draw(text_image)
 
+        # Wrap text
+        lines = ['']
+        for word in text.split():
+            line = f'{lines[-1]} {word}'.strip()
+            if FONT.getlength(line) <= 700:
+                lines[-1] = line
+            else:
+                lines.append(word)
+        text = '\n'.join(lines)
+
         # Draw text in the centre of the screen
-        _, _, text_width, text_height = text_image_draw.textbbox((0, 0), text, font=FONT)
-        text_image_draw.text(((WIDTH-text_width)/2, (HEIGHT-text_height)/2), text, font=FONT, fill=(255, 255, 255))
+        text_image_draw.text(xy=(WIDTH/2, HEIGHT/2), text=text, font=FONT, anchor="mm", align="center", fill=(255, 255, 255))
 
         # Save to .png file
         text_image.save(f"media/{output_directory}/{output_directory}_{i}.png")
+
 
 
 def generate_video(gameplay_video_file=None, text_image_directory="generate_text_output", background_audio_file=None, voice_audio_directory="process_audio_output", output_file="generate_video_output"):
