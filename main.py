@@ -1,4 +1,4 @@
-from edit_video import generate_audio, process_audio, generate_video
+from edit_video import generate_audio, process_audio, generate_text, generate_video
 from scrape_wiki import open_wiki, get_wiki
 
 
@@ -8,6 +8,7 @@ def main():
     article_list = article.split('. ')
     generate_audio(text_list=article_list)
     process_audio()
+    generate_text(text_list=article_list)
     generate_video()
 
 

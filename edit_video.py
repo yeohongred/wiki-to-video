@@ -13,6 +13,7 @@ WIDTH = 1080
 HEIGHT = 1920
 FONT = ImageFont.truetype(font="assets/montserrat_semibold.ttf", size=100)
 
+
 # Take a list of strings and save each string to a .wav file
 def generate_audio(voice=0, text_list=["The quick brown fox jumps over the lazy dog", "Lorem Ipsum is simply dummy text of the printing and typesetting industry."], output_directory="generate_audio_output"):
     # Initialise TTS engine and set desired voice
@@ -32,6 +33,7 @@ def generate_audio(voice=0, text_list=["The quick brown fox jumps over the lazy 
     engine.runAndWait()
 
 
+# Add sound effects like reverb
 def process_audio(input_directory="generate_audio_output", output_directory="process_audio_output"):
     # Add reverb to sound more spacious
     board = Pedalboard([Reverb(room_size=0.4, damping=1, wet_level=0.2, dry_level=0.3)])
@@ -52,6 +54,7 @@ def process_audio(input_directory="generate_audio_output", output_directory="pro
                     output_audio.write(effected)
 
 
+# Generate .png files of text
 def generate_text(text_list=["The quick brown fox jumps over the lazy dog", "Lorem Ipsum is simply dummy text of the printing and typesetting industry."], output_directory="generate_text_output"):
     # Ensure directory exists and clear existing .png files
     os.makedirs(f"media/{output_directory}", exist_ok=True)
@@ -82,7 +85,7 @@ def generate_text(text_list=["The quick brown fox jumps over the lazy dog", "Lor
         text_image.save(f"media/{output_directory}/{output_directory}_{i}.png")
 
 
-
+# Combine all audio and video to final output
 def generate_video(gameplay_video_file=None, text_image_directory="generate_text_output", background_audio_file=None, voice_audio_directory="process_audio_output", output_file="generate_video_output"):
     # Randomly choose gameplay footage if not provided
     if gameplay_video_file is None:
@@ -120,7 +123,7 @@ def generate_video(gameplay_video_file=None, text_image_directory="generate_text
     final_video = CompositeVideoClip([gameplay_video, text_with_voice])
     final_audio = CompositeAudioClip([background_audio, text_with_voice.audio])
     final_output = final_video.set_audio(final_audio)
-    final_output.write_videofile(f"media/{output_file}.mp4", fps=60)
+    final_output.write_videofile(f"media/{output_file}.mp4", fps=24)
 
 
 if __name__ == "__main__":
