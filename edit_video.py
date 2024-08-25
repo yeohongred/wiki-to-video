@@ -76,7 +76,7 @@ def generate_text(text_list=["The quick brown fox jumps over the lazy dog", "Lor
         text = '\n'.join(lines)
 
         # Draw text in the centre of the screen
-        text_image_draw.text(xy=(WIDTH/2, HEIGHT/2), text=text, font=FONT, anchor="mm", align="center", fill=(255, 255, 255))
+        text_image_draw.text(xy=(WIDTH/2, HEIGHT/2), text=text, fill=(255, 255, 255), font=FONT, anchor="mm", align="center", stroke_width=10, stroke_fill=(0, 0, 0))
 
         # Save to .png file
         text_image.save(f"media/{output_directory}/{output_directory}_{i}.png")
@@ -85,13 +85,13 @@ def generate_text(text_list=["The quick brown fox jumps over the lazy dog", "Lor
 
 def generate_video(gameplay_video_file=None, text_image_directory="generate_text_output", background_audio_file=None, voice_audio_directory="process_audio_output", output_file="generate_video_output"):
     # Randomly choose gameplay footage if not provided
-    if gameplay_video_file == None:
+    if gameplay_video_file is None:
         for _, _, files in os.walk("assets"):
             gameplay_video_files = [file for file in files if file.endswith(".mp4")]
         gameplay_video_file = random.choice(gameplay_video_files)
     
     # Randomly choose background music if not provided
-    if background_audio_file == None:
+    if background_audio_file is None:
         for _, _, files in os.walk("assets"):
             background_audio_files = [file for file in files if file.endswith(".wav")]
         background_audio_file = random.choice(background_audio_files)
@@ -124,4 +124,5 @@ def generate_video(gameplay_video_file=None, text_image_directory="generate_text
 
 
 if __name__ == "__main__":
+    generate_text()
     generate_video()

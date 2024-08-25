@@ -12,9 +12,9 @@ driver = webdriver.Chrome()
 # Default date is current date unless argument given
 # Date formatting should be ("8", "August", "2024")
 def open_wiki(day=None, month=None, year=None):
-    day = datetime.now().strftime("%#d") if day == None else day
-    month = datetime.now().strftime("%B") if month == None else month
-    year = datetime.now().strftime("%Y") if year == None else year
+    day = datetime.now().strftime("%#d") if day is None else day
+    month = datetime.now().strftime("%B") if month is None else month
+    year = datetime.now().strftime("%Y") if year is None else year
 
     driver.get(f"{ROOT_URL}{month}_{day},_{year}")
     time.sleep(1)
