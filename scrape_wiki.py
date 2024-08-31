@@ -9,9 +9,13 @@ ROOT_URL = f"https://en.wikipedia.org/wiki/Wikipedia:Today%27s_featured_article/
 driver = webdriver.Chrome()
 
 
-# Default date is current date unless argument given
-# Date formatting should be ("8", "August", "2024")
-def open_wiki(day=None, month=None, year=None):
+def open_wiki(day: int | None = None, month: str | None = None, year: int | None = None) -> None:
+    """
+    Default date is current date unless argument given
+
+    Date formatting should be ("8", "August", "2024")
+    """
+
     day = datetime.now().strftime("%#d") if day is None else day
     month = datetime.now().strftime("%B") if month is None else month
     year = datetime.now().strftime("%Y") if year is None else year
@@ -20,8 +24,10 @@ def open_wiki(day=None, month=None, year=None):
     time.sleep(1)
 
 
-def get_wiki():
+# consider using https://en.wikipedia.org/wiki/Special:Random
+def get_wiki() -> list[str]:
     article = driver.find_element(By.XPATH, "//*[@id='mw-content-text']/div[1]").text
+    
     # Removes extra text
     article = article.split(" (Full article...)")[0]
     article = article.split("\n")[1] if "\n" in article else article
@@ -40,4 +46,3 @@ def get_wiki():
 
 if __name__ == "__main__":
     open_wiki()
-    get_wiki()

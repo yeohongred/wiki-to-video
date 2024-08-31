@@ -15,8 +15,11 @@ FONT = ImageFont.truetype(font="assets/montserrat_semibold.ttf", size=100)
 
 
 # Take a list of strings and save each string to a .wav file
-def generate_audio(voice=0, text_list=["The quick brown fox jumps over the lazy dog", "Lorem Ipsum is simply dummy text of the printing and typesetting industry."], output_directory="generate_audio_output"):
-    # Initialise TTS engine and set desired voice
+def generate_audio(voice: int = 0, text_list: list[str] = ["The quick brown fox jumps over the lazy dog", "Lorem Ipsum is simply dummy text of the printing and typesetting industry."], output_directory: str = "generate_audio_output") -> None:
+    """
+    Initialise TTS engine and set desired voice
+    """
+
     engine = pyttsx3.init()
     voices = engine.getProperty("voices")
     engine.setProperty("voice", voices[voice].id)
@@ -33,8 +36,11 @@ def generate_audio(voice=0, text_list=["The quick brown fox jumps over the lazy 
     engine.runAndWait()
 
 
-# Add sound effects like reverb
-def process_audio(input_directory="generate_audio_output", output_directory="process_audio_output"):
+def process_audio(input_directory: str = "generate_audio_output", output_directory: str = "process_audio_output") -> None:
+    """
+    Add sound effects like reverb
+    """
+
     # Add reverb to sound more spacious
     board = Pedalboard([Reverb(room_size=0.4, damping=1, wet_level=0.2, dry_level=0.3)])
 
@@ -54,8 +60,11 @@ def process_audio(input_directory="generate_audio_output", output_directory="pro
                     output_audio.write(effected)
 
 
-# Generate .png files of text
-def generate_text(text_list=["The quick brown fox jumps over the lazy dog", "Lorem Ipsum is simply dummy text of the printing and typesetting industry."], output_directory="generate_text_output"):
+def generate_text(text_list: list[str] = ["The quick brown fox jumps over the lazy dog", "Lorem Ipsum is simply dummy text of the printing and typesetting industry."], output_directory: str = "generate_text_output") -> None:
+    """
+    Generate .png files of text
+    """
+
     # Ensure directory exists and clear existing .png files
     os.makedirs(f"media/{output_directory}", exist_ok=True)
     for file in os.listdir(f"media/{output_directory}"):
@@ -85,8 +94,11 @@ def generate_text(text_list=["The quick brown fox jumps over the lazy dog", "Lor
         text_image.save(f"media/{output_directory}/{output_directory}_{i}.png")
 
 
-# Combine all audio and video to final output
-def generate_video(gameplay_video_file=None, text_image_directory="generate_text_output", background_audio_file=None, voice_audio_directory="process_audio_output", output_file="generate_video_output"):
+def generate_video(gameplay_video_file: str | None = None, text_image_directory: str = "generate_text_output", background_audio_file: str | None = None, voice_audio_directory: str = "process_audio_output", output_file: str = "generate_video_output") -> None:
+    """
+    Combine all audio and video to final output
+    """
+    
     # Randomly choose gameplay footage if not provided
     if gameplay_video_file is None:
         for _, _, files in os.walk("assets"):
