@@ -1,5 +1,6 @@
 from edit_video import generate_audio, process_audio, generate_text, generate_video
 from scrape_wiki import open_wiki, get_wiki
+from upload_video import upload_instagram, upload_tiktok, upload_youtube
 
 
 def main():

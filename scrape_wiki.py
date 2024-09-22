@@ -5,7 +5,7 @@ from selenium import webdriver
 from selenium.webdriver.common.by import By
 
 
-ROOT_URL = f"https://en.wikipedia.org/wiki/Wikipedia:Today%27s_featured_article/"
+ROOT_URL = "https://en.wikipedia.org/wiki/Wikipedia:Today%27s_featured_article/"
 driver = webdriver.Chrome()
 
 
