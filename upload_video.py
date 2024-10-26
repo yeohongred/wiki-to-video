@@ -1,3 +1,5 @@
+import json
+import os
 import time
 
 from selenium import webdriver
@@ -5,6 +7,37 @@ from selenium.webdriver.common.by import By
 
 
 driver = webdriver.Chrome()
+
+
+def save_cookies(cookies_file: str = "cookies") -> list[dict]:
+    """
+    Get cookies from current website and saves cookies to .json file
+    """
+    
+    # Get cookies from current website
+    cookies = driver.get_cookies()
+
+    # Save cookies to .json file
+    with open(f"cookies/{cookies_file}.json", 'w') as file:
+        json.dump(cookies, file, indent=4)
+
+    return cookies
+
+
+def load_cookies(cookies_file: str = "cookies") -> list[dict]:
+    """
+    Get cookies from .json file and load them on current website
+    """
+
+    # Get cookies from .json file
+    with open(f"cookies/{cookies_file}.json", 'r') as file:
+        cookies = json.load(file)
+    
+    # Load cookies on current website
+    for cookie in cookies:
+        driver.add_cookie(cookie)
+
+    return cookies
 
 
 def upload_instagram() -> str:
@@ -30,8 +63,13 @@ def upload_youtube(input_file: str = "generate_video_output", title: str = "test
 
     # Link
     driver.get("https://studio.youtube.com")
-    time.sleep(1)
+    if "youtube_cookies.json" in os.listdir():
+        load_cookies("youtube_cookies")
+    else:
+        input("Press any key to continue after logging in: ")
+        save_cookies("youtube_cookies")
 
+    
     # Select upload
     driver.find_element(By.ID, "upload-icon").click()
     driver.find_element(By.CSS_SELECTOR, "input[type='file']").send_keys(f"media/{input_file}.mp4")
@@ -64,4 +102,4 @@ def upload_youtube(input_file: str = "generate_video_output", title: str = "test
 
 
 if __name__ == "__main__":
-    pass
+    upload_youtube()
