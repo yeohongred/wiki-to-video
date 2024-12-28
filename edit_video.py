@@ -2,99 +2,71 @@ import math
 import os
 import random
 
-import pyttsx3
-from pedalboard import Pedalboard, Reverb
-from pedalboard.io import AudioFile
-from PIL import Image, ImageDraw, ImageFont
-from moviepy.editor import *
+import soundfile as sf
+import stable_whisper
+import stable_whisper.alignment
+import stable_whisper.audio
+import torch
+from moviepy import *
+from moviepy.video.tools.subtitles import SubtitlesClip
+from parler_tts import ParlerTTSForConditionalGeneration
+from transformers import AutoTokenizer
 
 
 WIDTH = 1080
 HEIGHT = 1920
-FONT = ImageFont.truetype(font="assets/montserrat_semibold.ttf", size=100)
+device = "cuda:0" if torch.cuda.is_available() else "cpu"
 
 
-# Take a list of strings and save each string to a .wav file
-def generate_audio(voice: int = 0, text_list: list[str] = ["The quick brown fox jumps over the lazy dog", "Lorem Ipsum is simply dummy text of the printing and typesetting industry."], output_directory: str = "generate_audio_output") -> None:
+def generate_voice(prompt: str = "The quick brown fox jumps over the lazy dog. Lorem Ipsum is simply dummy text of the printing and typesetting industry.",
+                   description: str = "A female speaker delivers a very expressive and animated speech with a very quick pace and high pitch. The recording is of very high quality, with the speaker's voice sounding clear and very close up.",
+                   model_checkpoint: str = "parler-tts-mini-v1",
+                   output_file: str = "generate_voice_output") -> None:
     """
-    Initialise TTS engine and set desired voice
-    """
-
-    engine = pyttsx3.init()
-    voices = engine.getProperty("voices")
-    engine.setProperty("voice", voices[voice].id)
-
-    # Ensure directory exists and also clear existing .wav files
-    os.makedirs(f"media/{output_directory}", exist_ok=True)
-    for file in os.listdir(f"media/{output_directory}"):
-        if file.endswith(".wav"):
-            os.remove(os.path.join(f"media/{output_directory}", file))
-
-    # Save each text to its own file
-    for i, text in enumerate(text_list):
-        engine.save_to_file(text, f"media/{output_directory}/{output_directory}_{i}.wav")
-    engine.runAndWait()
-
-
-def process_audio(input_directory: str = "generate_audio_output", output_directory: str = "process_audio_output") -> None:
-    """
-    Add sound effects like reverb
+    Convert string of text to audio through TTS and save to a .wav file
+    model_checkpoint: https://huggingface.co/collections/parler-tts/parler-tts-fully-open-source-high-quality-tts-66164ad285ba03e8ffde214c
     """
 
-    # Add reverb to sound more spacious
-    board = Pedalboard([Reverb(room_size=0.4, damping=1, wet_level=0.2, dry_level=0.3)])
+    model = ParlerTTSForConditionalGeneration.from_pretrained(f"parler-tts/{model_checkpoint}").to(device)
+    tokenizer = AutoTokenizer.from_pretrained(f"parler-tts/{model_checkpoint}")
 
-    # Ensure directory exists and also clear existing .wav files
-    os.makedirs(f"media/{output_directory}", exist_ok=True)
-    for file in os.listdir(f"media/{output_directory}"):
-        if file.endswith(".wav"):
-            os.remove(os.path.join(f"media/{output_directory}", file))
+    input_ids = tokenizer(description, return_tensors="pt").input_ids.to(device)
+    prompt_input_ids = tokenizer(prompt, return_tensors="pt").input_ids.to(device)
 
-    # Iterate through input directory and save processed .wav files into output directory
-    for i in range(sum((len(files) for _, _, files in os.walk(f"media/{input_directory}")))):
-        with AudioFile(f"media/{input_directory}/{input_directory}_{i}.wav") as input_audio:
-            with AudioFile(f"media/{output_directory}/{output_directory}_{i}.wav", 'w', input_audio.samplerate, input_audio.num_channels) as output_audio:
-                while input_audio.tell() < input_audio.frames:
-                    chunk = input_audio.read(input_audio.samplerate)
-                    effected = board(chunk, input_audio.samplerate, reset=False)
-                    output_audio.write(effected)
+    generation = model.generate(input_ids=input_ids, prompt_input_ids=prompt_input_ids)
+    audio_arr = generation.cpu().numpy().squeeze()
+    sf.write(f"media/{output_file}.wav", audio_arr, model.config.sampling_rate)
 
 
-def generate_text(text_list: list[str] = ["The quick brown fox jumps over the lazy dog", "Lorem Ipsum is simply dummy text of the printing and typesetting industry."], output_directory: str = "generate_text_output") -> None:
+def generate_subtitles(prompt: str = "The quick brown fox jumps over the lazy dog. Lorem Ipsum is simply dummy text of the printing and typesetting industry.",
+                       voice_audio_file: str = "generate_voice_output",
+                       model_name: str = "base",
+                       output_file: str = "generate_subtitles_output") -> None:
     """
-    Generate .png files of text
+    name : {'tiny', 'tiny.en', 'base', 'base.en', 'small', 'small.en', 'medium', 'medium.en', 'large-v1',
+    'large-v2', 'large-v3', or 'large'}
     """
 
-    # Ensure directory exists and clear existing .png files
-    os.makedirs(f"media/{output_directory}", exist_ok=True)
-    for file in os.listdir(f"media/{output_directory}"):
-        if file.endswith(".png"):
-            os.remove(os.path.join(f"media/{output_directory}", file))
+    # Transcribe
+    model = stable_whisper.load_model(model_name)
+    result = stable_whisper.alignment.align(model=model,
+                                            audio=f"media/{voice_audio_file}.wav",
+                                            text=prompt,
+                                            language="en",
+                                            suppress_silence=False)
+    result.to_srt_vtt(f"media/{output_file}.srt", False, True)
 
-    # Save each text to its own .png file
-    for i, text in enumerate(text_list):
-        # Set up image
-        text_image = Image.new("RGBA", (WIDTH, HEIGHT), color=(0, 0, 0, 0))
-        text_image_draw = ImageDraw.Draw(text_image)
-
-        # Wrap text
-        lines = ['']
-        for word in text.split():
-            line = f'{lines[-1]} {word}'.strip()
-            if FONT.getlength(line) <= 700:
-                lines[-1] = line
-            else:
-                lines.append(word)
-        text = '\n'.join(lines)
-
-        # Draw text in the centre of the screen
-        text_image_draw.text(xy=(WIDTH/2, HEIGHT/2), text=text, fill=(255, 255, 255), font=FONT, anchor="mm", align="center", stroke_width=10, stroke_fill=(0, 0, 0))
-
-        # Save to .png file
-        text_image.save(f"media/{output_directory}/{output_directory}_{i}.png")
+    # Append two empty lines as otherwise moviepy cannot read last line
+    with open(f"media/{output_file}.srt", 'a') as file:
+        file.write("\n\n")
 
 
-def generate_video(gameplay_video_file: str | None = None, text_image_directory: str = "generate_text_output", background_audio_file: str | None = None, voice_audio_directory: str = "process_audio_output", output_file: str = "generate_video_output") -> None:
+def generate_video(gameplay_video_file: str | None = None,
+                   background_audio_file: str | None = None,
+                   font_file: str | None = None,
+                   voice_audio_file: str = "generate_voice_output",
+                   subtitles_file: str = "generate_subtitles_output",
+                   output_file: str = "generate_video_output") -> None:
     """
     Combine all audio and video to final output
     """
@@ -111,33 +83,41 @@ def generate_video(gameplay_video_file: str | None = None, text_image_directory:
             background_audio_files = [file for file in files if file.endswith(".wav")]
         background_audio_file = random.choice(background_audio_files)
 
+    # Randomly choose OpenType font if not provided
+    if font_file is None:
+        for _, _, files in os.walk("assets"):
+            font_files = [file for file in files if file.endswith(".otf") or file.endswith(".ttf")]
+        font_file = random.choice(font_files)
+
     # Set up clips
     gameplay_video = VideoFileClip(f"assets/{gameplay_video_file}")
-    text_images = [ImageClip(f"media/{text_image_directory}/{text_image_directory}_{i}.png") for i in range(sum((len(files) for _, _, files in os.walk(f"media/{text_image_directory}"))))]
     background_audio = AudioFileClip(f"assets/{background_audio_file}")
-    voice_audios = [AudioFileClip(f"media/{voice_audio_directory}/{voice_audio_directory}_{i}.wav") for i in range(sum((len(files) for _, _, files in os.walk(f"media/{voice_audio_directory}"))))]
-
-    # Sequence text with voice audio
-    for i in range(len(text_images)):
-        text_images[i] = text_images[i].set_duration(voice_audios[i].duration).set_audio(voice_audios[i])
-    text_with_voice = concatenate_videoclips(text_images)
+    voice_audio = AudioFileClip(f"media/{voice_audio_file}.wav")
+    subtitles = SubtitlesClip(subtitles=f"media/{subtitles_file}.srt", make_textclip=lambda txt: TextClip(font=f"assets/{font_file}",
+                                                                                                          text=txt,
+                                                                                                          font_size=150,
+                                                                                                          size=(None, 190),
+                                                                                                          color='white',
+                                                                                                          bg_color="black",
+                                                                                                          text_align="center"))
 
     # Trim gameplay video to correct length
-    video_length = math.ceil(sum(voice_audio.duration for voice_audio in voice_audios))
+    video_length = math.ceil(voice_audio.duration)
     start_time = random.randint(0, math.floor(gameplay_video.duration) - video_length)
-    gameplay_video = gameplay_video.subclip(start_time, start_time + video_length)
+    gameplay_video = gameplay_video.subclipped(start_time, start_time + video_length)
 
     # Reduce volume of background audio
-    background_audio = background_audio.subclip(0, video_length)
-    background_audio = background_audio.volumex(0.05)
+    background_audio = background_audio.subclipped(0, video_length)
+    background_audio = background_audio.with_volume_scaled(0.2)
 
     # Organise and combine video and audio, save to .mp4 file
-    final_video = CompositeVideoClip([gameplay_video, text_with_voice])
-    final_audio = CompositeAudioClip([background_audio, text_with_voice.audio])
-    final_output = final_video.set_audio(final_audio)
+    final_video = CompositeVideoClip([gameplay_video, subtitles.with_position(("center", "center"))])
+    final_audio = CompositeAudioClip([background_audio, voice_audio])
+    final_output = final_video.with_audio(final_audio)
     final_output.write_videofile(f"media/{output_file}.mp4", fps=24)
 
 
 if __name__ == "__main__":
-    generate_text()
+    generate_voice()
+    generate_subtitles()
     generate_video()

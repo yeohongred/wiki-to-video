@@ -1,4 +1,4 @@
 moviepy
-pedalboard
-pyttsx3
+git+https://github.com/huggingface/parler-tts.git
 selenium
+stable-ts

@@ -2,7 +2,9 @@
 *.mp4
 *.wav
 *.png
+*.otf
 *.ttf
+*.srt
 *.json
 
 # Byte-compiled / optimized / DLL files
